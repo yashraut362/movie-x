@@ -31,3 +31,7 @@ body {
     text-wrap: balance;
   }
 }
+
+.plyr {
+  border-radius: 10px;
+}
