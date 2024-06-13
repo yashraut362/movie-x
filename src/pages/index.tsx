@@ -44,7 +44,7 @@ export default function Home() {
 
               </MenuItem>
             </div>
-            <div onClick={() => router.push(`/`)} >
+            <div onClick={() => window.open('https://yashraut.me')} >
               <MenuItem setActive={setActive} active={null} item="About">
 
               </MenuItem>
