@@ -26,8 +26,9 @@ const MoviePage = () => {
             const videosResponse = await axios.get(`https://api.themoviedb.org/3/movie/${id}/videos?api_key=${process.env.NEXT_PUBLIC_MOVIE_DB}&language=en-US`);
 
             const trailerAndYouTubeVideos = videosResponse.data.results.filter((video: any) => {
+                console.log(video)
                 // Check if the video is a trailer or hosted on YouTube
-                return video.name.includes('Trailer') || video.type === "Trailer" || video.site.toLowerCase() === "youtube";
+                return video.name.includes('Trailer') || video.type === "Trailer" && video.site.toLowerCase() === "youtube";
             });
 
             trailerAndYouTubeVideos[0].key ? setTrailerId(trailerAndYouTubeVideos[0].key) : setTrailerId(videosResponse.data.results[0].key)
@@ -57,6 +58,7 @@ const MoviePage = () => {
             <div className='flex flex-col md:flex-row items-center justify-center p-10 h-[120vh]'>
                 <div className="w-full md:w-1/2 mb-10 lg:mb-0 ">
                     <Plyr
+                        id={trailerId}
                         options={{ resetOnEnd: true }}
                         source={{
                             type: "video",
