@@ -111,12 +111,35 @@ export default function Suggest() {
             </p>
           </div>
 
-          <div className="w-full max-w-2xl">
-            <PlaceholdersAndVanishInput
-              placeholders={placeholders}
-              onChange={handleInputChange}
-              onSubmit={handleSearch}
-            />
+          <div className="flex w-full max-w-2xl flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="sm:flex-1">
+              <PlaceholdersAndVanishInput
+                placeholders={placeholders}
+                onChange={handleInputChange}
+                onSubmit={handleSearch}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => handleSearch()}
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-emerald-400/60 bg-gradient-to-r from-emerald-500/15 via-emerald-500/10 to-transparent px-8 py-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-emerald-200 transition hover:border-emerald-300 hover:from-emerald-500/25 hover:text-emerald-100 sm:px-6 sm:py-2.5"
+              aria-label="Run movie suggestion search"
+            >
+              <span>Suggest</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={1.5}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-4 w-4"
+              >
+                <path d="M5 12h14" />
+                <path d="m13 6 6 6-6 6" />
+              </svg>
+            </button>
           </div>
 
           <div className="flex w-full snap-x gap-4 overflow-x-auto pb-2 pt-4 md:grid md:grid-cols-5 md:gap-6 md:overflow-visible">
