@@ -16,6 +16,7 @@ const MoviePage = () => {
 
     const fetchMovieById = async (id: string) => {
         try {
+            setTrailerId(null);
             const response = await axios.get(`https://api.themoviedb.org/3/movie/${id}?api_key=${process.env.NEXT_PUBLIC_MOVIE_DB}`);
             setMovie(response.data)
             const hours = Math.floor(response.data.runtime / 60);
@@ -25,21 +26,29 @@ const MoviePage = () => {
             // Fetch movie videos
             const videosResponse = await axios.get(`https://api.themoviedb.org/3/movie/${id}/videos?api_key=${process.env.NEXT_PUBLIC_MOVIE_DB}&language=en-US`);
 
-            const trailerAndYouTubeVideos = videosResponse.data.results.filter((video: any) => {
-                console.log(video)
-                // Check if the video is a trailer or hosted on YouTube
-                return video.name.includes('Trailer') || video.type === "Trailer" && video.site.toLowerCase() === "youtube";
+            const videos = Array.isArray(videosResponse.data.results) ? videosResponse.data.results : [];
+            const trailerMatch = videos.find((video: any) => {
+                if (!video || typeof video !== 'object') return false;
+                if (video.site?.toLowerCase() !== 'youtube') return false;
+                return video.type === "Trailer" || video.name?.includes('Trailer');
             });
 
-            trailerAndYouTubeVideos[0].key ? setTrailerId(trailerAndYouTubeVideos[0].key) : setTrailerId(videosResponse.data.results[0].key)
+            if (trailerMatch?.key) {
+                setTrailerId(trailerMatch.key);
+            }
         } catch (error) {
             console.error('Error fetching movie details:', error);
             return null;
         }
     };
     useEffect(() => {
-        fetchMovieById(String(id))
-    }, [id]);
+        if (!router.isReady) return;
+
+        const resolvedId = Array.isArray(id) ? id[0] : id;
+        if (!resolvedId) return;
+
+        fetchMovieById(resolvedId);
+    }, [id, router.isReady]);
 
     if (!movie) {
         return <div className='w-screen h-screen flex items-center justify-center'>
@@ -57,15 +66,21 @@ const MoviePage = () => {
         >
             <div className='flex flex-col md:flex-row items-center justify-center p-10 h-[120vh]'>
                 <div className="w-full md:w-1/2 mb-10 lg:mb-0 ">
-                    <Plyr
-                        id={trailerId}
-                        options={{ resetOnEnd: true }}
-                        source={{
-                            type: "video",
-                            // @ts-ignore
-                            sources: [{ src: `https://www.youtube.com/watch?v=${trailerId}`, provider: 'youtube' }],
-                        }}
-                    />
+                    {trailerId ? (
+                        <Plyr
+                            id={trailerId}
+                            options={{ resetOnEnd: true }}
+                            source={{
+                                type: "video",
+                                // @ts-ignore
+                                sources: [{ src: `https://www.youtube.com/watch?v=${trailerId}`, provider: 'youtube' }],
+                            }}
+                        />
+                    ) : (
+                        <div className="flex h-full min-h-[320px] w-full items-center justify-center rounded-xl border border-white/10 bg-black/40 p-8 text-center text-lg font-semibold text-white/80">
+                            Trailer not available
+                        </div>
+                    )}
                 </div>
                 <div className="w-full md:w-1/2 lg:pl-16">
                     <h1 className="text-4xl font-bold mb-4">{movie?.title}</h1>
@@ -103,5 +118,3 @@ const MoviePage = () => {
 };
 
 export default MoviePage;
-
-
