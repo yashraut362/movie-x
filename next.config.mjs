@@ -10,6 +10,7 @@ const nextConfig = {
       { hostname: "movieposters2.com" },
       { hostname: "m.media-amazon.com" },
       { hostname: "image.tmdb.org" },
+      { hostname: "via.placeholder.com" },
     ],
   },
 };
