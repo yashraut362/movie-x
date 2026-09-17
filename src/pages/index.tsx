@@ -12,7 +12,7 @@ import Link from "next/link";
 import { HoveredLink, Menu, MenuItem, ProductItem } from "@/components/ui/navbar";
 
 import Footer from "@/components/ui/footer";
-import axios from "axios";
+import { getPopular } from "@/lib/api";
 import router from "next/router";
 export default function Home() {
   const words = ["Movies", "Tv shows", 'Podcasts', 'Stand-up comedy'];
@@ -24,8 +24,8 @@ export default function Home() {
   }, []);
 
   const getmovies = async () => {
-    const result = await axios.get(`https://api.themoviedb.org/3/movie/popular?api_key=${process.env.NEXT_PUBLIC_MOVIE_DB}`)
-    setMovies(result.data.results)
+    const result = await getPopular()
+    setMovies(result.results)
   }
   return (
     <>
@@ -41,6 +41,11 @@ export default function Home() {
             </div>
             <div onClick={() => router.push(`/explore`)} >
               <MenuItem setActive={setActive} active={null} item="Explore">
+
+              </MenuItem>
+            </div>
+            <div onClick={() => router.push(`/ask`)} >
+              <MenuItem setActive={setActive} active={null} item="Ask">
 
               </MenuItem>
             </div>

@@ -1,7 +1,7 @@
 "use client";
 import { CardBody, CardContainer, CardItem } from '@/components/ui/3d-card';
 import { PlaceholdersAndVanishInput } from '@/components/ui/input-placeholder';
-import axios from 'axios';
+import { getPopular, searchMovies } from '@/lib/api';
 import React, { useState, useEffect, ChangeEvent, FormEvent, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -46,16 +46,9 @@ export default function Suggest() {
 
   const handleSearch = async (e?: FormEvent<HTMLFormElement>) => {
     if (e) e.preventDefault();
-    const apiKey = process.env.NEXT_PUBLIC_MOVIE_DB;
-    let url: string;
-    if (query) {
-      url = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${query}`;
-    } else {
-      url = `https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}`;
-    }
     try {
-      const response = await axios.get(url);
-      setMovies(response.data.results);
+      const data = query ? await searchMovies(query) : await getPopular();
+      setMovies(data.results);
     } catch (error) {
       console.error('Error fetching data:', error);
     }
