@@ -1,7 +1,7 @@
 'use client'
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import { getMovie, getVideos } from '@/lib/api';
 import dynamic from 'next/dynamic'
 import { PacmanLoader } from 'react-spinners';
 const Plyr = dynamic(() => import('plyr-react'), { ssr: false })
@@ -17,16 +17,16 @@ const MoviePage = () => {
     const fetchMovieById = async (id: string) => {
         try {
             setTrailerId(null);
-            const response = await axios.get(`https://api.themoviedb.org/3/movie/${id}?api_key=${process.env.NEXT_PUBLIC_MOVIE_DB}`);
-            setMovie(response.data)
-            const hours = Math.floor(response.data.runtime / 60);
-            const minutes = response.data.runtime % 60;
+            const data = await getMovie(id);
+            setMovie(data)
+            const hours = Math.floor(data.runtime / 60);
+            const minutes = data.runtime % 60;
             const formattedTime = `${hours} hours and ${minutes} minutes`;
             setduration(formattedTime)
             // Fetch movie videos
-            const videosResponse = await axios.get(`https://api.themoviedb.org/3/movie/${id}/videos?api_key=${process.env.NEXT_PUBLIC_MOVIE_DB}&language=en-US`);
+            const videosData = await getVideos(id);
 
-            const videos = Array.isArray(videosResponse.data.results) ? videosResponse.data.results : [];
+            const videos = Array.isArray(videosData.results) ? videosData.results : [];
             const trailerMatch = videos.find((video: any) => {
                 if (!video || typeof video !== 'object') return false;
                 if (video.site?.toLowerCase() !== 'youtube') return false;

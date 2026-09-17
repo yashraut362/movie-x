@@ -24,6 +24,18 @@ The `pages/api` directory is mapped to `/api/*`. Files in this directory are tre
 
 This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
 
+## Backend
+
+All TMDB calls go through a separate Express API, [movie-x-backend](https://github.com/yashraut362/movie-x-backend), so the TMDB key never reaches the browser. Run it alongside this app:
+
+```bash
+# in ../movie-x-backend
+npm install && cp .env.example .env   # fill in TMDB_API_KEY
+npm run dev                            # http://localhost:4000
+```
+
+This app reads `NEXT_PUBLIC_API_URL` (default `http://localhost:4000`) from `.env`.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
