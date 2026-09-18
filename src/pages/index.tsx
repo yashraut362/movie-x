@@ -13,19 +13,27 @@ import { HoveredLink, Menu, MenuItem, ProductItem } from "@/components/ui/navbar
 
 import Footer from "@/components/ui/footer";
 import { getPopular } from "@/lib/api";
+import { MovieGridSkeleton } from "@/components/ui/movie-card-skeleton";
 import router from "next/router";
 export default function Home() {
   const words = ["Movies", "Tv shows", 'Podcasts', 'Stand-up comedy'];
   const [active, setActive] = useState<string | null>(null);
   const [movies, setMovies] = useState([] as any)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     getmovies()
   }, []);
 
   const getmovies = async () => {
-    const result = await getPopular()
-    setMovies(result.results)
+    try {
+      const result = await getPopular()
+      setMovies(result.results)
+    } catch (error) {
+      console.error('Error fetching movies:', error)
+    } finally {
+      setLoading(false)
+    }
   }
   return (
     <>
@@ -82,7 +90,7 @@ export default function Home() {
       <div className=" bg-[#18181B]">
         <span className="text-white text-4xl font-semibold ">Explore some movies from here</span>
         <div className="py-7  grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-y-7">
-          {movies.map((movie: any) => (
+          {loading ? <MovieGridSkeleton /> : movies.map((movie: any) => (
             <CardContainer className="inter-var" key={movie.id}>
               <CardBody className="relative group/card hover:shadow-2xlhover:shadow-emerald-500/[0.1] bg-black bg-opacity-45 border-white/[0.1]  w-auto sm:w-[20rem] h-auto rounded-xl p-6 border">
                 <CardItem

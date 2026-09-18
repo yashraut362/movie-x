@@ -2,6 +2,7 @@
 import { CardBody, CardContainer, CardItem } from '@/components/ui/3d-card';
 import { PlaceholdersAndVanishInput } from '@/components/ui/input-placeholder';
 import { getPopular, searchMovies } from '@/lib/api';
+import { MovieGridSkeleton } from '@/components/ui/movie-card-skeleton';
 import React, { useState, useEffect, ChangeEvent, FormEvent } from 'react';
 import Image from "next/image";
 import Link from 'next/link';
@@ -19,6 +20,7 @@ interface Movie {
 export default function Explore() {
     const [query, setQuery] = useState<string>('');
     const [movies, setMovies] = useState<Movie[]>([]);
+    const [loading, setLoading] = useState(true);
 
     const placeholders = [
         "Search for a movie that you always wanted to watch",
@@ -29,11 +31,14 @@ export default function Explore() {
 
     const handleSearch = async (e?: FormEvent<HTMLFormElement>) => {
         if (e) e.preventDefault();
+        setLoading(true);
         try {
             const data = query ? await searchMovies(query) : await getPopular();
             setMovies(data.results);
         } catch (error) {
             console.error('Error fetching data:', error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -65,7 +70,7 @@ export default function Explore() {
                 <BackgroundBeams />
             </div>
             <form onSubmit={handleSearch} className="py-7 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-y-7">
-                {movies.map((movie: Movie) => (
+                {loading && movies.length === 0 ? <MovieGridSkeleton /> : movies.map((movie: Movie) => (
                     <CardContainer className="inter-var" key={movie.id}>
                         <CardBody className="relative group/card hover:shadow-2xl hover:shadow-emerald-500/[0.1] bg-black bg-opacity-45 border-white/[0.1] w-auto sm:w-[20rem] h-auto rounded-xl p-6 border">
                             <CardItem

@@ -64,9 +64,11 @@ function MovieCard({ pick, index }: { pick: Pick; index: number }) {
           )}
         </div>
         <div className="mt-3 flex-1">
-          <p className="line-clamp-1 text-base font-semibold text-white">
-            {meta?.title ?? "Loading…"}
-          </p>
+          {meta ? (
+            <p className="line-clamp-1 text-base font-semibold text-white">{meta.title}</p>
+          ) : (
+            <div className="h-5 w-2/3 animate-pulse rounded bg-white/10" />
+          )}
           <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-neutral-400">
             {pick.why}
           </p>
@@ -77,7 +79,7 @@ function MovieCard({ pick, index }: { pick: Pick; index: number }) {
               {year}
             </span>
           ) : (
-            <span />
+            <span className="h-5 w-12 animate-pulse rounded-full bg-white/5" />
           )}
           {meta ? (
             <span className="font-mono text-[11px] text-white/60">

@@ -2,6 +2,7 @@
 import { CardBody, CardContainer, CardItem } from '@/components/ui/3d-card';
 import { PlaceholdersAndVanishInput } from '@/components/ui/input-placeholder';
 import { getPopular, searchMovies } from '@/lib/api';
+import { MovieGridSkeleton } from '@/components/ui/movie-card-skeleton';
 import React, { useState, useEffect, ChangeEvent, FormEvent, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -23,6 +24,7 @@ interface Movie {
 export default function Suggest() {
   const [query, setQuery] = useState<string>('');
   const [movies, setMovies] = useState<Movie[]>([]);
+  const [loading, setLoading] = useState(true);
   const addMovie = useMovieStore((state) => state.addMovie);
   const savedMovies = useMovieStore((state) => state.movies);
   const removeMovie = useMovieStore((state) => state.removeMovie);
@@ -46,11 +48,14 @@ export default function Suggest() {
 
   const handleSearch = async (e?: FormEvent<HTMLFormElement>) => {
     if (e) e.preventDefault();
+    setLoading(true);
     try {
       const data = query ? await searchMovies(query) : await getPopular();
       setMovies(data.results);
     } catch (error) {
       console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -235,7 +240,7 @@ export default function Suggest() {
         onSubmit={handleSearch}
         className="grid grid-cols-1 gap-y-7 py-7 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
       >
-        {movies.map((movie: Movie) => {
+        {loading && movies.length === 0 ? <MovieGridSkeleton /> : movies.map((movie: Movie) => {
           const posterSrc = movie.poster_path
             ? `https://image.tmdb.org/t/p/original/${movie.poster_path}`
             : 'https://via.placeholder.com/500x750.png?text=No+Poster';
