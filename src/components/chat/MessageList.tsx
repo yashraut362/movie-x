@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { getMovie } from "@/lib/api";
+import { getMovie, type ConciergeBooking } from "@/lib/api";
 import { motion } from "framer-motion";
 import type { Pick } from "@/lib/askMovieX";
 import { cn } from "@/utils/cn";
@@ -12,6 +12,7 @@ export type Message = {
   role: "user" | "assistant";
   text: string;
   picks?: Pick[];
+  booking?: ConciergeBooking;
   loading?: boolean;
 };
 
@@ -92,6 +93,40 @@ function MovieCard({ pick, index }: { pick: Pick; index: number }) {
   );
 }
 
+// Ticket-style card for a booking the concierge just made.
+function BookingCard({ booking }: { booking: ConciergeBooking }) {
+  const [poster, setPoster] = useState<string | null>(null);
+
+  useEffect(() => {
+    getMovie(booking.tmdbId)
+      .then((data) => setPoster(data.poster_path ?? null))
+      .catch((err) => console.error("Error fetching booking poster:", err));
+  }, [booking.tmdbId]);
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
+      <Link
+        href={`/book/${booking.tmdbId}`}
+        className="flex w-fit items-center gap-4 rounded-[20px] border border-emerald-500/40 bg-[#1F2121] p-3 pr-6 transition hover:border-emerald-400"
+      >
+        <div className="relative h-24 w-16 overflow-hidden rounded-lg bg-black/40">
+          {poster ? (
+            <Image src={`https://image.tmdb.org/t/p/w185${poster}`} alt={booking.title} fill sizes="64px" className="object-cover" />
+          ) : null}
+        </div>
+        <div className="text-sm">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-300">Booked</p>
+          <p className="mt-1 font-semibold text-white">{booking.title}</p>
+          <p className="text-neutral-400">
+            {booking.venue} · {booking.time}
+          </p>
+          <p className="text-neutral-400">Seats {booking.seats.join(", ")}</p>
+        </div>
+      </Link>
+    </motion.div>
+  );
+}
+
 // Three bouncing dots shown while the backend is finding movies.
 function TypingIndicator() {
   return (
@@ -130,6 +165,7 @@ export default function MessageList({ messages }: { messages: Message[] }) {
       {messages.map((m) => (
         <div key={m.id} className="flex flex-col gap-3">
           <Bubble message={m} />
+          {m.booking ? <BookingCard booking={m.booking} /> : null}
           {m.picks && m.picks.length > 0 ? (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
               {m.picks.map((p, i) => (

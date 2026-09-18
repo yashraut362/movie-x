@@ -22,5 +22,6 @@ export const createBooking = (body: ShowKey & { seats: string[] }) =>
 
 // Booking concierge chat. Returns the reply text; the backend runs the tools.
 export type ConciergeTurn = { role: "user" | "assistant"; text: string };
+export type ConciergeBooking = { tmdbId: number; title: string; venue: string; time: string; seats: string[] };
 export const askConcierge = (message: string, history: ConciergeTurn[] = []) =>
-  api.post("/api/concierge", { message, history }).then((r) => r.data as { text: string });
+  api.post("/api/concierge", { message, history }).then((r) => r.data as { text: string; booking: ConciergeBooking | null });

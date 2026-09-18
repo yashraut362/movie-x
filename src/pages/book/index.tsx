@@ -61,15 +61,15 @@ export default function Book() {
     ]);
 
     // Replace the pending assistant bubble once the reply arrives.
-    const finish = (reply: string) =>
-      setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, text: reply, loading: false } : m)));
+    const finish = (update: Partial<Message>) =>
+      setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, ...update, loading: false } : m)));
 
     try {
       const answer = await askConcierge(text, history);
-      finish(answer.text);
+      finish({ text: answer.text, booking: answer.booking ?? undefined });
     } catch (err) {
       console.error("askConcierge failed:", err);
-      finish("Something went wrong. Try again.");
+      finish({ text: "Something went wrong. Try again." });
     } finally {
       setBusy(false);
     }
@@ -148,7 +148,7 @@ export default function Book() {
         {empty ? (
           <div className="flex flex-1 flex-col items-center justify-center text-center">
             <h1 className="bg-gradient-to-b from-neutral-200 to-neutral-600 bg-clip-text text-4xl font-bold text-transparent md:text-6xl">
-              Movie Concierge
+              Movie Concierge agent
             </h1>
             <p className="mt-4 max-w-md text-base text-neutral-400 md:text-lg">
               Say what you feel like watching and when. It picks the movie, venue, time and seats, and books them.
