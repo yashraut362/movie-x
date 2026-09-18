@@ -1,6 +1,5 @@
 'use client'
 import { useRouter } from 'next/router';
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { getMovie, getVideos } from '@/lib/api';
 import dynamic from 'next/dynamic'
@@ -118,12 +117,6 @@ const MoviePage = () => {
                         ))}
                     </div>
                     <p className="text-sm font-semibold">Duration: {duration}</p>
-                    <Link
-                        href={`/book/${movie.id}`}
-                        className="mt-6 inline-block rounded-xl bg-emerald-500 px-6 py-3 font-bold text-black hover:bg-emerald-400"
-                    >
-                        Book tickets
-                    </Link>
                 </div>
             </div>
         </div>

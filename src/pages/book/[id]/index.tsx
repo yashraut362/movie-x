@@ -3,8 +3,9 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { Menu, MenuItem } from "@/components/ui/navbar";
-import { getMovie } from "@/lib/api";
-import { ROWS, SEATS_PER_ROW, SHOWTIMES, TAKEN_SEATS, VENUES } from "@/lib/booking";
+import axios from "axios";
+import { createBooking, getMovie, getTakenSeats } from "@/lib/api";
+import { ROWS, SEATS_PER_ROW, SHOWTIMES, VENUES, todayISO } from "@/lib/booking";
 import { cn } from "@/utils/cn";
 
 type Movie = { title: string; poster_path: string | null };
@@ -12,13 +13,18 @@ type Movie = { title: string; poster_path: string | null };
 export default function BookMovie() {
   const router = useRouter();
   const [active, setActive] = useState<string | null>(null);
+  const [movieId, setMovieId] = useState<number | null>(null);
   const [movie, setMovie] = useState<Movie | null>(null);
   const [failed, setFailed] = useState(false);
 
   const [venue, setVenue] = useState<string | null>(null);
   const [time, setTime] = useState<string | null>(null);
   const [seats, setSeats] = useState<string[]>([]);
+  const [taken, setTaken] = useState<string[]>([]);
+  const [seatsLoading, setSeatsLoading] = useState(false);
+  const [booking, setBooking] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [date] = useState(todayISO);
 
   // Hide the toast a few seconds after it appears.
   useEffect(() => {
@@ -27,16 +33,55 @@ export default function BookMovie() {
     return () => clearTimeout(timer);
   }, [toast]);
 
-  const book = () => {
-    if (!movie) return;
-    setToast(`Booked ${movie.title} at ${venue}, ${time}, seats ${seats.join(", ")}.`);
-    setSeats([]);
+  // Seats already booked for the chosen show. Re-run after every booking attempt.
+  const loadTaken = async () => {
+    if (movieId === null || !venue || !time) return;
+    setSeatsLoading(true);
+    try {
+      const { seats: booked } = await getTakenSeats({ tmdbId: movieId, venue, date, time });
+      setTaken(booked);
+      setSeats((prev) => prev.filter((s) => !booked.includes(s)));
+    } catch (error) {
+      console.error("Error fetching taken seats:", error);
+      setToast("Couldn't load booked seats.");
+    } finally {
+      setSeatsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    setTaken([]);
+    loadTaken();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [movieId, venue, time]);
+
+  const book = async () => {
+    if (!movie || movieId === null || !venue || !time) return;
+    setBooking(true);
+    try {
+      await createBooking({ tmdbId: movieId, venue, date, time, seats });
+      setToast(`Booked ${movie.title} at ${venue}, ${time}, seats ${seats.join(", ")}.`);
+      setSeats([]);
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 409) {
+        const conflict: string[] = error.response.data?.seats ?? [];
+        setToast(`Seats ${conflict.join(", ")} were just taken.`);
+        setSeats((prev) => prev.filter((s) => !conflict.includes(s)));
+      } else {
+        console.error("Error booking:", error);
+        setToast("Booking failed.");
+      }
+    } finally {
+      setBooking(false);
+      loadTaken();
+    }
   };
 
   useEffect(() => {
     if (!router.isReady) return;
     const id = Array.isArray(router.query.id) ? router.query.id[0] : router.query.id;
     if (!id) return;
+    setMovieId(Number(id));
     getMovie(id)
       .then(setMovie)
       .catch((error) => {
@@ -46,11 +91,11 @@ export default function BookMovie() {
   }, [router.isReady, router.query.id]);
 
   const toggleSeat = (seat: string) => {
-    if (TAKEN_SEATS.includes(seat)) return;
+    if (taken.includes(seat)) return;
     setSeats((prev) => (prev.includes(seat) ? prev.filter((s) => s !== seat) : [...prev, seat]));
   };
 
-  const canBook = venue !== null && time !== null && seats.length > 0;
+  const canBook = venue !== null && time !== null && seats.length > 0 && !seatsLoading && !booking;
 
   const navbar = (
     <div className="relative w-full flex items-center justify-center">
@@ -58,6 +103,9 @@ export default function BookMovie() {
         <Menu setActive={setActive}>
           <div onClick={() => router.push(`/`)}>
             <MenuItem setActive={setActive} active={null} item="Home" />
+          </div>
+          <div onClick={() => router.push(`/book`)}>
+            <MenuItem setActive={setActive} active={null} item="Book" />
           </div>
           <div onClick={() => router.push(`/ask`)}>
             <MenuItem setActive={setActive} active={null} item="Ask" />
@@ -136,19 +184,19 @@ export default function BookMovie() {
                 <span className="w-4 text-xs text-neutral-500">{row}</span>
                 {Array.from({ length: SEATS_PER_ROW }, (_, i) => {
                   const seat = `${row}${i + 1}`;
-                  const taken = TAKEN_SEATS.includes(seat);
+                  const isTaken = taken.includes(seat);
                   const selected = seats.includes(seat);
                   return (
                     <button
                       key={seat}
                       onClick={() => toggleSeat(seat)}
-                      disabled={taken}
+                      disabled={isTaken || seatsLoading}
                       title={seat}
                       className={cn(
                         "h-8 w-8 rounded text-xs",
-                        taken && "bg-neutral-700 cursor-not-allowed",
-                        !taken && selected && "bg-emerald-500 text-black",
-                        !taken && !selected && "bg-neutral-900 border border-white/20 hover:border-white/50"
+                        isTaken && "bg-neutral-700 cursor-not-allowed",
+                        !isTaken && selected && "bg-emerald-500 text-black",
+                        !isTaken && !selected && "bg-neutral-900 border border-white/20 hover:border-white/50"
                       )}
                     >
                       {i + 1}
@@ -159,7 +207,11 @@ export default function BookMovie() {
             ))}
           </div>
           <p className="mt-3 text-sm text-neutral-400">
-            {seats.length === 0 ? "Pick your seats." : `Selected: ${seats.join(", ")}`}
+            {seatsLoading
+              ? "Loading seats…"
+              : seats.length === 0
+                ? "Pick your seats."
+                : `Selected: ${seats.join(", ")}`}
           </p>
         </section>
 
