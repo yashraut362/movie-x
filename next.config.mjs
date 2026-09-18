@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
+  // Restore scroll position when navigating back/forward (pages router).
+  experimental: { scrollRestoration: true },
   images: {
     remotePatterns: [
       {

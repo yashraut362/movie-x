@@ -1,5 +1,5 @@
 // Placeholder cards shown while movie data is loading. The sizes mirror the
-// 3D movie cards on the home, explore, and suggest pages so nothing shifts
+// 3D movie cards on the home page so nothing shifts
 // when the real cards arrive.
 export function MovieCardSkeleton() {
   return (

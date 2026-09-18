@@ -1,5 +1,6 @@
 'use client'
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { getMovie, getVideos } from '@/lib/api';
 import dynamic from 'next/dynamic'
@@ -64,6 +65,12 @@ const MoviePage = () => {
                 backgroundSize: "cover"
             }}
         >
+            <button
+                onClick={() => (window.history.length > 1 ? router.back() : router.push('/'))}
+                className='fixed top-6 left-6 z-50 flex items-center gap-2 rounded-full border border-white/20 bg-black/50 px-4 py-2 text-sm text-white backdrop-blur hover:bg-black/80'
+            >
+                <span aria-hidden>&larr;</span> Back
+            </button>
             <div className='flex flex-col md:flex-row items-center justify-center p-10 h-[120vh]'>
                 <div className="w-full md:w-1/2 mb-10 lg:mb-0 ">
                     {trailerId ? (
@@ -111,6 +118,12 @@ const MoviePage = () => {
                         ))}
                     </div>
                     <p className="text-sm font-semibold">Duration: {duration}</p>
+                    <Link
+                        href={`/book/${movie.id}`}
+                        className="mt-6 inline-block rounded-xl bg-emerald-500 px-6 py-3 font-bold text-black hover:bg-emerald-400"
+                    >
+                        Book tickets
+                    </Link>
                 </div>
             </div>
         </div>
