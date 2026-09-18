@@ -151,7 +151,7 @@ export default function Book() {
               Movie Concierge agent
             </h1>
             <p className="mt-4 max-w-md text-base text-neutral-400 md:text-lg">
-              Say what you feel like watching and when. It picks the movie, venue, time and seats, and books them.
+              An OpenAI Agents SDK agent with four function tools: now playing (TMDB), venues and showtimes, seat availability and booking (MongoDB). It plans, asks you to confirm, re-checks seats, books, and returns a typed booking object.
             </p>
             <div className="mt-10 grid w-full max-w-xl grid-cols-1 gap-3 sm:grid-cols-2">
               {EXAMPLES.map((ex) => (

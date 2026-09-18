@@ -79,10 +79,10 @@ export default function Ask() {
         {empty ? (
           <div className="flex flex-1 flex-col items-center justify-center text-center">
             <h1 className="bg-gradient-to-b from-neutral-200 to-neutral-600 bg-clip-text text-4xl font-bold text-transparent md:text-6xl">
-              Ask MovieX
+              Ask MovieX RAG
             </h1>
             <p className="mt-4 max-w-md text-base text-neutral-400 md:text-lg">
-              Describe a mood, a genre, or a night. Get a few picks with a reason for each.
+              Your question is embedded with OpenAI, matched against movie vectors in Pinecone, and the top hits are handed to the model with a strict JSON schema so it can only recommend films it actually retrieved.
             </p>
             <div className="mt-10 grid w-full max-w-xl grid-cols-1 gap-3 sm:grid-cols-2">
               {EXAMPLES.map((ex) => (
