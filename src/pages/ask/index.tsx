@@ -34,29 +34,20 @@ export default function Ask() {
     const history: ChatTurn[] = messages.map((m) => ({ role: m.role, text: m.text }));
     const userMsg: Message = { id: nextId(), role: "user", text };
     const assistantId = nextId();
-    const assistantMsg: Message = { id: assistantId, role: "assistant", text: "", streaming: true };
-    setMessages((prev) => [...prev, userMsg, assistantMsg]);
+    const pending: Message = { id: assistantId, role: "assistant", text: "", loading: true };
+    setMessages((prev) => [...prev, userMsg, pending]);
 
-    const patch = (update: Partial<Message>) =>
-      setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, ...update } : m)));
+    // Replace the pending assistant message once the answer arrives.
+    const finish = (update: Partial<Message>) =>
+      setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, ...update, loading: false } : m)));
 
     try {
-      let acc = "";
-      for await (const event of askMovieX(text, history)) {
-        if (event.type === "text") {
-          acc += event.text;
-          patch({ text: acc });
-        } else if (event.type === "picks") {
-          patch({ picks: event.picks });
-        } else if (event.type === "done") {
-          patch({ streaming: false });
-        }
-      }
+      const answer = await askMovieX(text, history);
+      finish({ text: answer.text, picks: answer.picks });
     } catch (err) {
       console.error("askMovieX failed:", err);
-      patch({ text: "Something went wrong. Try again.", streaming: false });
+      finish({ text: "Something went wrong. Try again." });
     } finally {
-      patch({ streaming: false });
       setBusy(false);
     }
   };

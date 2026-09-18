@@ -12,7 +12,7 @@ export type Message = {
   role: "user" | "assistant";
   text: string;
   picks?: Pick[];
-  streaming?: boolean;
+  loading?: boolean;
 };
 
 type MovieMeta = {
@@ -92,6 +92,20 @@ function MovieCard({ pick, index }: { pick: Pick; index: number }) {
   );
 }
 
+// Three bouncing dots shown while the backend is finding movies.
+function TypingIndicator() {
+  return (
+    <span className="flex items-center gap-2 py-0.5 text-sm text-neutral-400">
+      <span className="flex items-center gap-1">
+        <span className="h-2 w-2 animate-bounce rounded-full bg-emerald-300 [animation-delay:-0.3s]" />
+        <span className="h-2 w-2 animate-bounce rounded-full bg-emerald-300 [animation-delay:-0.15s]" />
+        <span className="h-2 w-2 animate-bounce rounded-full bg-emerald-300" />
+      </span>
+      Finding movies…
+    </span>
+  );
+}
+
 function Bubble({ message }: { message: Message }) {
   const isUser = message.role === "user";
   return (
@@ -104,10 +118,7 @@ function Bubble({ message }: { message: Message }) {
             : "rounded-bl-md border border-white/10 bg-[#1F2121] text-neutral-100"
         )}
       >
-        {message.text}
-        {message.streaming ? (
-          <span className="ml-0.5 inline-block h-[1em] w-[2px] translate-y-[2px] animate-pulse bg-emerald-300" />
-        ) : null}
+        {message.loading ? <TypingIndicator /> : message.text}
       </div>
     </div>
   );
