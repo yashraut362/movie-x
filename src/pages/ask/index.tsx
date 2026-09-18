@@ -62,6 +62,9 @@ export default function Ask() {
             <div onClick={() => router.push(`/`)}>
               <MenuItem setActive={setActive} active={null} item="Home" />
             </div>
+            <div onClick={() => router.push(`/book`)}>
+              <MenuItem setActive={setActive} active={null} item="Book" />
+            </div>
             <div onClick={() => router.push(`/ask`)}>
               <MenuItem setActive={setActive} active={null} item="Ask" />
             </div>
