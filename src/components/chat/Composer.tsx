@@ -9,9 +9,11 @@ const LINE_HEIGHT = 24;
 export default function Composer({
   onSend,
   disabled,
+  placeholder = "Ask for a movie. Mood, genre, actor, anything.",
 }: {
   onSend: (text: string) => void;
   disabled: boolean;
+  placeholder?: string;
 }) {
   const [value, setValue] = useState("");
   const ref = useRef<HTMLTextAreaElement>(null);
@@ -48,7 +50,7 @@ export default function Composer({
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={onKeyDown}
-          placeholder="Ask for a movie. Mood, genre, actor, anything."
+          placeholder={placeholder}
           className="max-h-[144px] flex-1 resize-none bg-transparent px-3 py-2 text-[15px] leading-6 text-white placeholder:text-neutral-500 focus:outline-none"
         />
         <button

@@ -4,8 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 import { Menu, MenuItem } from "@/components/ui/navbar";
 import axios from "axios";
-import { createBooking, getMovie, getTakenSeats } from "@/lib/api";
-import { ROWS, SEATS_PER_ROW, SHOWTIMES, VENUES, todayISO } from "@/lib/booking";
+import { createBooking, getMovie, getShows, getTakenSeats, type Shows } from "@/lib/api";
 import { cn } from "@/utils/cn";
 
 type Movie = { title: string; poster_path: string | null };
@@ -15,6 +14,7 @@ export default function BookMovie() {
   const [active, setActive] = useState<string | null>(null);
   const [movieId, setMovieId] = useState<number | null>(null);
   const [movie, setMovie] = useState<Movie | null>(null);
+  const [shows, setShows] = useState<Shows | null>(null);
   const [failed, setFailed] = useState(false);
 
   const [venue, setVenue] = useState<string | null>(null);
@@ -24,7 +24,6 @@ export default function BookMovie() {
   const [seatsLoading, setSeatsLoading] = useState(false);
   const [booking, setBooking] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
-  const [date] = useState(todayISO);
 
   // Hide the toast a few seconds after it appears.
   useEffect(() => {
@@ -35,10 +34,10 @@ export default function BookMovie() {
 
   // Seats already booked for the chosen show. Re-run after every booking attempt.
   const loadTaken = async () => {
-    if (movieId === null || !venue || !time) return;
+    if (movieId === null || !shows || !venue || !time) return;
     setSeatsLoading(true);
     try {
-      const { seats: booked } = await getTakenSeats({ tmdbId: movieId, venue, date, time });
+      const { seats: booked } = await getTakenSeats({ tmdbId: movieId, venue, date: shows.date, time });
       setTaken(booked);
       setSeats((prev) => prev.filter((s) => !booked.includes(s)));
     } catch (error) {
@@ -53,13 +52,13 @@ export default function BookMovie() {
     setTaken([]);
     loadTaken();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [movieId, venue, time]);
+  }, [movieId, shows, venue, time]);
 
   const book = async () => {
-    if (!movie || movieId === null || !venue || !time) return;
+    if (!movie || !shows || movieId === null || !venue || !time) return;
     setBooking(true);
     try {
-      await createBooking({ tmdbId: movieId, venue, date, time, seats });
+      await createBooking({ tmdbId: movieId, venue, date: shows.date, time, seats });
       setToast(`Booked ${movie.title} at ${venue}, ${time}, seats ${seats.join(", ")}.`);
       setSeats([]);
     } catch (error) {
@@ -82,10 +81,13 @@ export default function BookMovie() {
     const id = Array.isArray(router.query.id) ? router.query.id[0] : router.query.id;
     if (!id) return;
     setMovieId(Number(id));
-    getMovie(id)
-      .then(setMovie)
+    Promise.all([getMovie(id), getShows()])
+      .then(([movieData, showsData]) => {
+        setMovie(movieData);
+        setShows(showsData);
+      })
       .catch((error) => {
-        console.error("Error fetching movie:", error);
+        console.error("Error fetching movie or shows:", error);
         setFailed(true);
       });
   }, [router.isReady, router.query.id]);
@@ -122,7 +124,7 @@ export default function BookMovie() {
 
   if (failed) {
     body = <p className="text-neutral-400">Couldn&apos;t load this movie.</p>;
-  } else if (!movie) {
+  } else if (!movie || !shows) {
     body = <p className="text-neutral-400">Loading…</p>;
   } else {
     body = (
@@ -143,7 +145,7 @@ export default function BookMovie() {
         <section className="text-center">
           <h2 className="text-lg font-semibold mb-3">Venue</h2>
           <div className="flex flex-wrap justify-center gap-3">
-            {VENUES.map((v) => (
+            {shows.venues.map((v) => (
               <button
                 key={v}
                 onClick={() => setVenue(v)}
@@ -161,7 +163,7 @@ export default function BookMovie() {
         <section className="text-center">
           <h2 className="text-lg font-semibold mb-3">Showtime</h2>
           <div className="flex flex-wrap justify-center gap-3">
-            {SHOWTIMES.map((t) => (
+            {shows.showtimes.map((t) => (
               <button
                 key={t}
                 onClick={() => setTime(t)}
@@ -179,10 +181,10 @@ export default function BookMovie() {
         <section className="flex flex-col items-center text-center">
           <h2 className="text-lg font-semibold mb-3">Seats</h2>
           <div className="inline-flex flex-col gap-2">
-            {ROWS.map((row) => (
+            {shows.rows.map((row) => (
               <div key={row} className="flex items-center gap-2">
                 <span className="w-4 text-xs text-neutral-500">{row}</span>
-                {Array.from({ length: SEATS_PER_ROW }, (_, i) => {
+                {Array.from({ length: shows.seatsPerRow }, (_, i) => {
                   const seat = `${row}${i + 1}`;
                   const isTaken = taken.includes(seat);
                   const selected = seats.includes(seat);
