@@ -2,6 +2,10 @@
 
 A Next.js frontend for browsing movies, asking for recommendations, and booking seats. Catalog data, the recommendation model, and bookings live in a separate Express API, [movie-x-backend](https://github.com/yashraut362/movie-x-backend), so the TMDB key never reaches the browser.
 
+## Demo
+
+https://github.com/user-attachments/assets/d282b70c-7fb2-4a7d-84fa-7389563477ef
+
 ## Features
 
 - **Home** (`/`) — popular movies, with search that waits briefly after the last keystroke.
