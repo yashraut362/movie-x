@@ -4,7 +4,9 @@ A Next.js frontend for browsing movies, asking for recommendations, and booking 
 
 ## Demo
 
-https://github.com/user-attachments/assets/d282b70c-7fb2-4a7d-84fa-7389563477ef
+https://github.com/user-attachments/assets/ea522c22-a627-424c-bd65-4bded2d84659
+
+
 
 ## Features
 
